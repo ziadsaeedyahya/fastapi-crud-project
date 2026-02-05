@@ -48,7 +48,7 @@ def update_item(item_id: int, updated_item: ItemCreate):
             return db[index]
     raise HTTPException(status_code=404, detail="Item not found")
 
-# 5. مسح (Delete) - الجديدة اهي يا وحش
+
 @app.delete("/items/{item_id}")
 def delete_item(item_id: int):
     for index, item in enumerate(db):
