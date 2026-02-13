@@ -35,6 +35,6 @@ def verify_token(token: str) -> Optional[int]:
         user_id = payload.get("sub")
         if user_id is None:
             return None
-        return user_id
-    except (JWTError, ValueError):
+        return int(user_id) # حوله لـ int هنا عشان الـ DB query
+    except (JWTError, ValueError, TypeError):
         return None

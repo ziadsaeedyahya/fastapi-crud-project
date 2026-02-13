@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
     SUPABASE_DB_URL: str
+    COHERE_API_KEY: str
+    SECRET_KEY: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

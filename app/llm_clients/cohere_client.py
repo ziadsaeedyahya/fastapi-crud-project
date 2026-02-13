@@ -9,7 +9,7 @@ class CohereClient(LLMBaseClient):
     def generate_response(self, prompt: str, **kwargs) -> dict:
         response = self.client.chat(
             message=prompt,
-            model="command-r-plus", # أو الموديل اللي تفضله
+            model="command-r-08-2024", 
             **kwargs
         )
         # هنا بنجمع كل الـ Output اللي يهم اليوزر
@@ -21,7 +21,7 @@ class CohereClient(LLMBaseClient):
                     "output": response.meta.tokens.output_tokens,
                     "total": response.meta.tokens.input_tokens + response.meta.tokens.output_tokens
                 },
-                "model": "cohere-command-r-plus",
+                "model": "command-r-08-2024",
                 "finish_reason": response.finish_reason
             }
         }
