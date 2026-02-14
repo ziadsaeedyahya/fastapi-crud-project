@@ -3,7 +3,6 @@ from datetime import datetime
 
 class ChatCreate(BaseModel):
     prompt: str
-    user_id: int
 
 class ChatResponse(BaseModel):
     prompt: str

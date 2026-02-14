@@ -1,11 +1,10 @@
 from fastapi import APIRouter
-from app.api.v1 import item_router, user_router, user_item_router, auth_router, llm_router
+from app.api.v1 import item_router, user_router, user_item_router, auth_router, chat_router
 
 # هنثبت الاسم على router عشان الـ main.py بيعمل import للـ router
 router = APIRouter()
 
-# ربط الـ LLM مع بريفكس خاص بيه
-router.include_router(llm_router.router, prefix="/ai", tags=["AI Generation"])
+router.include_router(chat_router.router, prefix="/chat", tags=["AI Assistant"])
 
 # ربط بقية الروترات باستخدام نفس المتغير "router"
 router.include_router(item_router.router, prefix="/items", tags=["Items"])

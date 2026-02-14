@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
-from app.clientsdatabase_clients.db_manager import Base
+from app.clientsdatabase_clients.db_base_client import Base
 from datetime import datetime
 
 class ChatHistory(Base):
