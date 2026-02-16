@@ -26,9 +26,14 @@ def get_supabase_db():
     yield from supabase_client.get_session()
 
 
-# Default database (for backwards compatibility)
-get_db = get_postgres_db
+def get_db_by_source(db_source: str = "postgres"):
+    """دالة بتختار الداتا بيز بناءً على النوع اللي بنبعته لها"""
+    if db_source == "supabase":
+        yield from supabase_client.get_session()
+    else:
+        yield from postgres_client.get_session()
 
+get_db = get_postgres_db       
 
 # Cleanup function (optional - for app shutdown)
 def close_all_connections():
