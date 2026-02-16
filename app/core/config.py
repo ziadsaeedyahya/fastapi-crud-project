@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     SUPABASE_DB_URL: str
     COHERE_API_KEY: str
     SECRET_KEY: str
+    GROQ_API_KEY: str
+    SUPABASE_BUCKET_NAME: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import traceback
 
-from app.api.v1.router import router
+from app.api.route.router import router
 from app.clientsdatabase_clients import postgres_client, supabase_client, close_all_connections
 
 # Import models to ensure they're registered with Base
@@ -44,16 +44,27 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+import traceback
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# ... باقي الكود (app = FastAPI) ...
+
 # --- الـ Middleware اللي هيطبع لك الأيرور في الترمينال ---
 @app.middleware("http")
 async def catch_exceptions_middleware(request: Request, call_next):
     try:
-        # السطر ده هو اللي "بيعدي" الطلب للموقع، لو مش موجود الموقع هيعلق
+        # السطر ده هو اللي "بيعدي" الطلب للموقع
         response = await call_next(request)
         return response 
     except Exception as e:
-        traceback.print_exc()
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        print("🔴 Middleware Error Detected:")
+        # السطر ده هو اللي بيكتب لك مكان الغلط بالظبط في الترمينال
+        traceback.print_exc() 
+        return JSONResponse(
+            status_code=500, 
+            content={"detail": "Internal Server Error", "error": str(e)}
+        )
 
 # إضافة الـ Routes
 app.include_router(router)

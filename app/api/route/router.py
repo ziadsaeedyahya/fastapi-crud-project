@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import item_router, user_router, user_item_router, auth_router, chat_router
+from app.api.route import item_router, user_router, user_item_router, auth_router, chat_router
 
 # هنثبت الاسم على router عشان الـ main.py بيعمل import للـ router
 router = APIRouter()

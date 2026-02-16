@@ -1,30 +1,41 @@
 from typing import Any, Dict
 from app.llm_clients.cohere_client import CohereClient
-from app.llm_clients.gemini_client import gemini_client # استيراد الـ instance اللي عملناه
+from app.llm_clients.GroqClient import groq_client 
 
 class LLMManager:
     def __init__(self):
-        # بنسجل كل الـ Clients المتاحين هنا
         self._clients = {
             "cohere": CohereClient(),
-            "gemini": gemini_client  # ضفنا جيمناي للمجموعة
+            "groq": groq_client
         }
 
     def get_response(self, prompt: str, provider: str = "cohere", file_path: str = None, **kwargs) -> Dict[str, Any]:
-        # لو فيه ملف، بنحول أوتوماتيك لـ gemini لأن كوهير مش بيدعم ملفات في نسختنا الحالية
+        # 1. لو فيه ملف، بنحول أوتوماتيك لـ groq
         if file_path:
-            provider = "gemini"
+            provider = "groq"
             
         client = self._clients.get(provider)
         if not client:
-            raise ValueError(f"Provider {provider} not supported.")
+            client = self._clients.get("groq") 
         
-        # لو الموديل هو جيمناي، بنبعت الـ file_path مع الـ prompt
-        if provider == "gemini":
-            return client.get_response(prompt, file_path=file_path)
-        
-        # لو كوهير، بننادي الدالة بتاعته العادية
-        return client.generate_response(prompt, **kwargs)
+        # 2. تنفيذ الطلب
+        # هنا بنفترض إن الـ Clients بتوعك (Groq و Cohere) تم تعديلهم ليرجعوا Dict فيه النص والـ Usage
+        if provider == "groq":
+            response_data = client.get_response(prompt, file_path=file_path)
+        else:
+            try:
+                response_data = client.generate_response(prompt, **kwargs)
+            except AttributeError:
+                response_data = client.get_response(prompt, **kwargs)
 
-# بنعمل Instance واحدة نستخدمها في كل المشروع
+        # 3. التأكد من توحيد شكل الرد (Response Schema)
+        # لو الـ Client لسه بيرجع نص بس، بنحوله لـ Dict عشان الـ Service متضربش
+        if isinstance(response_data, str):
+            return {
+                "text": response_data,
+                "usage": {"info": "Token counting not implemented in client"}
+            }
+            
+        return response_data
+
 llm_manager = LLMManager()
