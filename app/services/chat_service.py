@@ -3,18 +3,32 @@ from sqlalchemy.orm import Session
 from app.repositories.chat_repository import ChatRepository
 from app.llm_clients.llm_manager import llm_manager 
 from app.models.chat_model import ChatHistory
+import io
+import requests
 
 class ChatService:
     def __init__(self, db: Session):
         self.chat_repo = ChatRepository(db)
 
     def _extract_text_from_pdf(self, file_path: str) -> str:
-        """وظيفة جانبية لاستخراج النص من ملف الـ PDF"""
+        """يقرأ الملف سواء كان رابط URL أو مسار محلي"""
         try:
             text = ""
-            with fitz.open(file_path) as doc:
+            # لو الملف عبارة عن رابط (بيدأ بـ http)
+            if file_path.startswith("http"):
+                response = requests.get(file_path)
+                response.raise_for_status()  # بيضمن إن اللينك شغال ومفيش Error 404
+                # بنفتح الملف من الـ Bytes اللي جت من النت مباشرة
+                doc = fitz.open(stream=io.BytesIO(response.content), filetype="pdf")
+            else:
+                # لو ملف محلي (للاحتياط)
+                doc = fitz.open(file_path)
+
+            with doc:
                 for page in doc:
                     text += page.get_text()
+            
+            print(f"✅ Successfully extracted {len(text)} characters from PDF")
             return text
         except Exception as e:
             print(f"❌ Error reading PDF: {str(e)}")
