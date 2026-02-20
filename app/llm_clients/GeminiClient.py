@@ -1,29 +1,46 @@
 import google.generativeai as genai
 from PIL import Image
 import io
-import os # هنستخدم os لو عايز تقرأ من الـ env مباشرة
 from app.core.config import settings
 
 class GeminiClient:
     def __init__(self):
-        # بنجيب الـ Key من الـ config اللي أنت لسه معدله
+        # بنربط الـ API Key من الـ Config
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        
-        # هنثبت اسم الموديل اللي اشتغل معاك هنا مباشرة
-        self.model_name = "gemini-2.5-flash" 
-        self.model = genai.GenerativeModel(self.model_name)
+        # الموديل اللي اخترته
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
-    def generate_response(self, prompt: str, image_bytes: bytes = None):
+    def get_image_response(self, prompt: str, image_bytes: bytes = None):
+        """
+        بتاخد البرومبت والـ bytes وبترجع النص والتوكنز في Dict
+        """
         try:
-            content = [prompt]
             if image_bytes:
+                # 1. حالة وجود صورة
                 img = Image.open(io.BytesIO(image_bytes))
-                content.append(img)
+                response = self.model.generate_content([prompt, img])
+            else:
+                # 2. حالة سؤال متابعة
+                response = self.model.generate_content(prompt)
             
-            response = self.model.generate_content(content)
-            return response.text
+            # استخراج بيانات الاستهلاك (Tokens)
+            usage = {
+                "prompt_tokens": response.usage_metadata.prompt_token_count,
+                "completion_tokens": response.usage_metadata.candidates_token_count,
+                "total_tokens": response.usage_metadata.total_token_count
+            }
+            
+            # بنرجع القاموس عشان المانجر يوزعه
+            return {
+                "text": response.text,
+                "usage": usage
+            }
+            
         except Exception as e:
-            print(f"❌ Gemini Error: {str(e)}")
-            return f"Error processing with Gemini: {str(e)}"
+            return {
+                "text": f"Error processing with Gemini: {str(e)}",
+                "usage": {"error": True}
+            }
 
+# نسخة واحدة للـ Manager
 gemini_client = GeminiClient()
