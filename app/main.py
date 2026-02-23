@@ -3,15 +3,17 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import traceback
 
+# استيراد الـ Routers
 from app.api.route.router import router
+from app.api.route import embedding_router      
+
 from app.clientsdatabase_clients import postgres_client, supabase_client, close_all_connections
 
-# Import models to ensure they're registered with Base
+# Import models
 from app.models import item_model, user_item_model, user_model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create tables
     print("🚀 Starting up application...")
     
     # 1. PostgreSQL (Docker)
@@ -20,7 +22,6 @@ async def lifespan(app: FastAPI):
         print("✅ PostgreSQL tables created")
     except Exception as e:
         print(f"❌ Failed to create PostgreSQL tables: {e}")
-        # هنا بنعمل raise عشان لو الداتا بيز المحلية مش شغالة السيرفر ميقومش أصلاً
         raise 
     
     # 2. Supabase
@@ -28,13 +29,11 @@ async def lifespan(app: FastAPI):
         supabase_client.create_tables()
         print("✅ Supabase tables created")
     except Exception as e:
-        # هنا بنطبع الأيرور بس بنكمل عشان السيرفر يشتغل عادي على المحلي
         print(f"⚠️  Supabase not available: {e}")
         print("   App will continue with PostgreSQL only")
     
     yield
     
-    # Shutdown: Close connections
     close_all_connections()
     print("✅ Database connections closed")
 
@@ -44,30 +43,27 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-import traceback
-from fastapi import Request
-from fastapi.responses import JSONResponse
-
-# ... باقي الكود (app = FastAPI) ...
-
-# --- الـ Middleware اللي هيطبع لك الأيرور في الترمينال ---
+# --- Middleware لمعالجة الأخطاء وطباعتها ---
 @app.middleware("http")
 async def catch_exceptions_middleware(request: Request, call_next):
     try:
-        # السطر ده هو اللي "بيعدي" الطلب للموقع
         response = await call_next(request)
         return response 
     except Exception as e:
         print("🔴 Middleware Error Detected:")
-        # السطر ده هو اللي بيكتب لك مكان الغلط بالظبط في الترمينال
         traceback.print_exc() 
         return JSONResponse(
             status_code=500, 
             content={"detail": "Internal Server Error", "error": str(e)}
         )
 
-# إضافة الـ Routes
+# --- إضافة الـ Routes ---
+
+# 1. الـ Router الأساسي (القديم)
 app.include_router(router)
+
+# 2. روتر الـ Embeddings (هيظهر في قسم لوحده في الـ Swagger)
+app.include_router(embedding_router.router)
 
 if __name__ == "__main__":
     import uvicorn
