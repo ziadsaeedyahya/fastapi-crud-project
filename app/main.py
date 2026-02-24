@@ -10,7 +10,7 @@ from app.api.route import embedding_router
 from app.clientsdatabase_clients import postgres_client, supabase_client, close_all_connections
 
 # Import models
-from app.models import item_model, user_item_model, user_model ,embedding_model
+from app.models import item_model, user_item_model, user_model ,embedding_model ,video_script_model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
