@@ -1,10 +1,10 @@
 from typing import Generator, Optional
 from sqlalchemy.orm import Session
 from app.clientsdatabase_clients.db_base_client import BaseDatabaseClient
-
+from supabase import create_client, Client 
 
 class SupabaseClient(BaseDatabaseClient):
-    """Supabase PostgreSQL database client"""
+    """Supabase PostgreSQL database client with Storage support"""
     
     def __init__(
         self, 
@@ -17,13 +17,20 @@ class SupabaseClient(BaseDatabaseClient):
         self.db_type = "supabase"
         self.supabase_url = supabase_url
         self.supabase_key = supabase_key
-    
+        
+        # --- التعديل السحري هنا ---
+        # بنفتح الـ SDK الرسمي ونخزنه جوه attribute اسمه storage
+        if supabase_url and supabase_key:
+            self._sdk: Client = create_client(supabase_url, supabase_key)
+            self.storage = self._sdk.storage 
+        else:
+            self.storage = None
+            print("⚠️ Warning: Supabase URL or Key missing. Storage will not work.")
+
     def get_session(self) -> Generator[Session, None, None]:
         """Get Supabase database session"""
         db = self.SessionLocal()
         try:
-            # You can add Supabase-specific configuration here if needed
-            # For example, setting row-level security policies
             yield db
         except Exception as e:
             db.rollback()
