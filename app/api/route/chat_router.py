@@ -15,6 +15,7 @@ supabase_client: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE
 class LLMProvider(str, Enum):
     cohere = "cohere"
     groq = "groq"
+    gemini = "gemini"
 
 @router.post("/ask")
 async def ask_ai(
@@ -22,7 +23,7 @@ async def ask_ai(
     db_source: str = Form("supabase"),
     provider: LLMProvider = Form(
         LLMProvider.cohere, 
-        description="💡 Note: Choose 'groq' for files (PDF), 'cohere' for text."
+       description="💡 Note: Use 'gemini' for Images (PNG, JPG), 'groq' for Files (PDF), and 'cohere' for Text."
     ), 
     file: UploadFile = File(None), 
     current_user: any = Depends(get_current_user)
