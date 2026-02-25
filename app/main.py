@@ -15,7 +15,7 @@ from app.models import item_model, user_item_model, user_model ,embedding_model 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 Starting up application...")
-    
+    """""
     # 1. PostgreSQL (Docker)
     try:
         postgres_client.create_tables()
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️  Supabase not available: {e}")
         print("   App will continue with PostgreSQL only")
-    
+    """""
     yield
     
     close_all_connections()

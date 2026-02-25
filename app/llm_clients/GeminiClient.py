@@ -5,32 +5,36 @@ from app.core.config import settings
 
 class GeminiClient:
     def __init__(self):
-        # بنربط الـ API Key من الـ Config
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        # الموديل اللي اخترته
         self.model = genai.GenerativeModel('gemini-2.5-flash')
+
+    def generate_response(self, prompt: str):
+        """
+        دالة بسيطة مخصصة للـ RAG (Video Chat) تأخذ نص وترد بنص
+        """
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            return f"❌ فشل Gemini في الرد: {str(e)}"
 
     def get_image_response(self, prompt: str, image_bytes: bytes = None):
         """
-        بتاخد البرومبت والـ bytes وبترجع النص والتوكنز في Dict
+        الدالة القديمة بتاعتك زي ما هي (للتعامل مع الصور والـ Usage)
         """
         try:
             if image_bytes:
-                # 1. حالة وجود صورة
                 img = Image.open(io.BytesIO(image_bytes))
                 response = self.model.generate_content([prompt, img])
             else:
-                # 2. حالة سؤال متابعة
                 response = self.model.generate_content(prompt)
             
-            # استخراج بيانات الاستهلاك (Tokens)
             usage = {
                 "prompt_tokens": response.usage_metadata.prompt_token_count,
                 "completion_tokens": response.usage_metadata.candidates_token_count,
                 "total_tokens": response.usage_metadata.total_token_count
             }
             
-            # بنرجع القاموس عشان المانجر يوزعه
             return {
                 "text": response.text,
                 "usage": usage
@@ -42,5 +46,5 @@ class GeminiClient:
                 "usage": {"error": True}
             }
 
-# نسخة واحدة للـ Manager
+# نسخة واحدة للاستخدام في الـ Router
 gemini_client = GeminiClient()

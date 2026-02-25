@@ -1,3 +1,4 @@
+import uuid # أضفنا استيراد uuid للتوافق
 from app.services.base_service import BaseService
 from app.repositories.user_repository import UserRepository
 from app.schemas.user_schema import UserCreate, UserUpdate
@@ -6,6 +7,7 @@ from app.core.security import get_password_hash, verify_password
 from sqlalchemy.exc import IntegrityError
 from app.core.exceptions import DuplicateException, UnauthorizedException, ForbiddenException, NotFoundException
 from fastapi import HTTPException, status
+from typing import Union
 
 class UserService(BaseService[User]):
     def __init__(self, repo: UserRepository):
@@ -34,17 +36,21 @@ class UserService(BaseService[User]):
     def get_users(self):
         return self.get_all()
     
-    def get_user(self, user_id: int):
+    # 1. تغيير النوع من int إلى Union[uuid.UUID, str] لضمان قبول الـ UUID
+    def get_user(self, user_id: Union[uuid.UUID, str]):
         return self.get_by_id(user_id)
     
     def get_user_by_username(self, username: str):
         return self.repo.get_by_username(username)
 
-    def update_user(self, user_id: int, data: UserCreate, current_user: User):
+    # 2. تعديل الـ user_id ليقبل النوع الجديد في كل الدوال
+    def update_user(self, user_id: Union[uuid.UUID, str], data: UserCreate, current_user: User):
         user = self.get_by_id(user_id)
+        if not user:
+            raise NotFoundException("User not found")
         
-        # Security: Users can only update their own account
-        if user.id != current_user.id:
+        # التأكد من مقارنة الـ IDs بشكل صحيح (تحويل كلاهما لـ string)
+        if str(user.id) != str(current_user.id):
             raise ForbiddenException("You can only update your own account")
         
         user.username = data.username
@@ -57,14 +63,14 @@ class UserService(BaseService[User]):
         except IntegrityError:
             raise DuplicateException("User", "username or email")
         
-    def patch_user(self, user_id: int, data: UserUpdate, current_user: User):
+    def patch_user(self, user_id: Union[uuid.UUID, str], data: UserUpdate, current_user: User):
         user = self.get_by_id(user_id)
+        if not user:
+            raise NotFoundException("User not found")
         
-        # Security: Users can only update their own account
-        if user.id != current_user.id:
+        if str(user.id) != str(current_user.id):
             raise ForbiddenException("You can only update your own account")
         
-        # Update only provided fields
         if data.username is not None:
             user.username = data.username
         if data.email is not None:
@@ -79,8 +85,9 @@ class UserService(BaseService[User]):
         except IntegrityError:
             raise DuplicateException("User", "username or email")
     
-    def delete_user(self, user_id: int, current_user: User):
-        if user_id != current_user.id:
+    def delete_user(self, user_id: Union[uuid.UUID, str], current_user: User):
+        # التحقق من الصلاحية بتحويل الـ IDs لنصوص
+        if str(user_id) != str(current_user.id):
             raise ForbiddenException("You can only delete your own account")
         
         user = self.get_by_id(user_id)
