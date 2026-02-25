@@ -1,3 +1,4 @@
+import uuid # 1. استيراد المكتبة
 from pydantic import BaseModel
 from typing import Optional
 
@@ -14,7 +15,8 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
 
 class UserResponse(BaseModel):
-    id: int
+    # 2. تغيير id المستخدم ليكون UUID
+    id: uuid.UUID 
     username: str
     email: str
     full_name: str
@@ -22,11 +24,12 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Token response
+# Token response (مش محتاج تعديل)
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Token data
+# Token data (مهم جداً!)
 class TokenData(BaseModel):
-    id: Optional[int] = None
+    # 3. تغيير الـ id المتوقع داخل الـ Token ليكون UUID
+    id: Optional[uuid.UUID] = None

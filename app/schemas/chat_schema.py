@@ -1,13 +1,17 @@
+import uuid # 1. استيراد المكتبة
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
 class ChatCreate(BaseModel):
     prompt: str
-    user_id: int  # ضفنا ده عشان نعرف مين المستخدم اللي بيسأل
-    provider: Optional[str] = "cohere"  # ده الحقل اللي هتقدر تختار منه (cohere أو groq)
+    # 2. تغيير user_id من int لـ uuid.UUID
+    user_id: uuid.UUID  
+    provider: Optional[str] = "cohere"
 
 class ChatResponse(BaseModel):
+    # 3. يفضل إضافة الـ ID الخاص بالرسالة نفسها لو هتحتاجه في الفرونت إند
+    id: uuid.UUID 
     prompt: str
     response: str
     created_at: datetime

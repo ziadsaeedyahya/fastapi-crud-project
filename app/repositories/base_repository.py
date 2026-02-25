@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Generic
+from typing import Type, TypeVar, Generic, Any
 from sqlalchemy.orm import Session
 
 T = TypeVar("T")
@@ -8,6 +8,7 @@ class BaseRepository(Generic[T]):
         self.db = db
         self.model = model
 
+    # الدالة اللي كانت ناقصة ومسببة المشكلة:
     def create(self, obj: T) -> T:
         self.db.add(obj)
         self.db.commit()
@@ -17,7 +18,7 @@ class BaseRepository(Generic[T]):
     def get_all(self):
         return self.db.query(self.model).all()
 
-    def get_by_id(self, obj_id: int):
+    def get_by_id(self, obj_id: Any): 
         return self.db.query(self.model).filter(
             self.model.id == obj_id
         ).first()

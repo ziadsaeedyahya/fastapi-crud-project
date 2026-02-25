@@ -29,12 +29,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_token(token: str) -> Optional[int]:
+def verify_token(token: str) -> Optional[str]: # غيرنا النوع لـ str
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
             return None
-        return int(user_id) # حوله لـ int هنا عشان الـ DB query
+        
+        # التعديل هنا: شلنا الـ int() لأن الـ ID دلوقت UUID
+        return str(user_id) 
+        
     except (JWTError, ValueError, TypeError):
         return None
