@@ -3,19 +3,28 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import traceback
 
-# استيراد الـ Routers
+# 1. استيراد الـ Routers (ضفنا الـ cv_router)
 from app.api.route.router import router
-from app.api.route import embedding_router      
+from app.api.route import embedding_router, cv_router 
 
 from app.clientsdatabase_clients import postgres_client, supabase_client, close_all_connections
 
-# Import models
-from app.models import item_model, user_item_model, user_model ,embedding_model ,video_script_model
+# 2. Import models (ضفنا الـ cv_model)
+from app.models import (
+    item_model, 
+    user_item_model, 
+    user_model, 
+    embedding_model, 
+    video_script_model,
+    cv_model 
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 Starting up application...")
-    """""
+    
+    # ملحوظة: لو حبيت تكريت الجداول أوتوماتيك، فك الكومنت عن الجزء اللي تحت ده
+    
     # 1. PostgreSQL (Docker)
     try:
         postgres_client.create_tables()
@@ -30,8 +39,7 @@ async def lifespan(app: FastAPI):
         print("✅ Supabase tables created")
     except Exception as e:
         print(f"⚠️  Supabase not available: {e}")
-        print("   App will continue with PostgreSQL only")
-    """""
+    
     yield
     
     close_all_connections()
@@ -59,11 +67,14 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 # --- إضافة الـ Routes ---
 
-# 1. الـ Router الأساسي (القديم)
+# 1. الـ Router الأساسي
 app.include_router(router)
 
-# 2. روتر الـ Embeddings (هيظهر في قسم لوحده في الـ Swagger)
+# 2. روتر الـ Embeddings
 app.include_router(embedding_router.router)
+
+# 3. روتر الـ CV Reviewer (الجديد)
+app.include_router(cv_router.router) # <-- تعديل هنا
 
 if __name__ == "__main__":
     import uvicorn
